@@ -50,34 +50,58 @@ t = 225 #K
 humid = 1.1 #wrt to ice
 eta = 0.3 #engine efficiency
 
-def mixing_line(T,fuel):
+def mixing_line(T,eta,P,t,humid,fuel,state):
     EI = EI_kerosene if fuel == 'kerosene' else EI_hydrogen
     LHV = LHV_kerosene if fuel == 'kerosene' else LHV_hydrogen
 
     G = (cp*P)/epsilon * EI/((1-eta)*(LHV*(10**6)))
-    return G
 
-G_slope = mixing_line(t,'kerosene')
-T_mix = []
-for i in T:
-    if i>=t :
-        T_mix.append(i)
-T_mix = np.array(T_mix)
-e_mixing = G_slope * (T_mix - t) + humid * saturation_vapor_pressure(t, 'ice')[1]
+    T_mix = []
+    for i in T:
+        if i>=t :
+            T_mix.append(i)
+    T_mix = np.array(T_mix)
 
-offset = P-t*G_slope
-print(offset)
-y = G_slope*T+offset
+    e_mixing = G * (T_mix - t) + humid * saturation_vapor_pressure(t, state)[1]
 
-# print(G_slope)
-# print(e_mixing)
-# print(y)
+    return e_mixing, T_mix
+
+#first plot mixing line conditions
+e_mixing1b, T_mix1b = mixing_line(T,0.3,22000,225,1.1,'kerosene','ice')
+e_mixing1c, T_mix1c = mixing_line(T,0.4,22000,225,1.1,'kerosene','ice')
+e_mixing1d, T_mix1d = mixing_line(T,0.4,22000,225,1.1,'hydrogen','ice')
 
 plt.figure()
 plt.plot(T, ep_liquid_lst, label="Liquid", color='b')
 plt.plot(T, ep_ice_lst, label="Ice", color='c')
-plt.plot(T_mix, e_mixing, label='Mixing Line', linestyle='--', color='r')
-plt.scatter(t,humid * saturation_vapor_pressure(t, 'ice')[1], label='Atmospheric Condition',color='r')
+plt.plot(T_mix1b, e_mixing1b, label='Mixing Line aircraft 1b', linestyle='--', color='r')
+plt.plot(T_mix1c, e_mixing1c, label='Mixing Line aircraft 1c', linestyle='--', color='orange')
+plt.plot(T_mix1d, e_mixing1d, label='Mixing Line aircraft 1d', linestyle='--', color='yellow')
+
+plt.scatter(225,1.1 * saturation_vapor_pressure(225, 'ice')[1], marker='.', label='Atmospheric Condition',color='black', zorder=7)
+plt.axvline(x=t, color='gray', linestyle=':', label=f'Ambient Temperature = {t} K')
+
+plt.xlabel("Temperature (K)")
+plt.ylabel("$e_p$ [Pa]")
+plt.title("Saturation Vapor Pressure")
+plt.legend()
+plt.grid(True)
+plt.xlim([273-60,273-20])
+plt.ylim([0,50])
+plt.show()
+
+e_mixing1f1, T_mix1f1 = mixing_line(T,0.3,25000,230,0.6,'kerosene','liquid')
+e_mixing1f2, T_mix1f2 = mixing_line(T,0.4,25000,230,0.6,'kerosene','liquid')
+e_mixing1f3, T_mix1f3 = mixing_line(T,0.4,25000,230,0.6,'hydrogen','liquid')
+
+plt.figure()
+plt.plot(T, ep_liquid_lst, label="Liquid", color='b')
+plt.plot(T, ep_ice_lst, label="Ice", color='c')
+plt.plot(T_mix1f1, e_mixing1f1, label='Mixing Line aircraft 1f-b', linestyle='--', color='r')
+plt.plot(T_mix1f2, e_mixing1f2, label='Mixing Line aircraft 1f-c', linestyle='--', color='orange')
+plt.plot(T_mix1f3, e_mixing1f3, label='Mixing Line aircraft 1f-d', linestyle='--', color='yellow')
+
+plt.scatter(230,0.6 * saturation_vapor_pressure(230, 'liquid')[1], marker='.', label='Atmospheric Condition',color='black', zorder=7)
 plt.axvline(x=t, color='gray', linestyle=':', label=f'Ambient Temperature = {t} K')
 
 plt.xlabel("Temperature (K)")
