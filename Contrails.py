@@ -128,7 +128,7 @@ plt.legend()
 plt.grid(True)
 plt.xlim([273-60,273-20])
 plt.ylim([0,50])
-plt.show()
+#plt.show()
 
 plt.figure()
 plt.plot(T, ep_liquid_lst, label="Liquid saturation curve", color='b')
@@ -147,7 +147,7 @@ plt.legend()
 plt.grid(True)
 plt.xlim([273-60,273-20])
 plt.ylim([0,50])
-plt.show()
+#plt.show()
 
 
 # plots threshold line and contrail area for given aircraft
@@ -230,7 +230,7 @@ def plot_aircraft(ac):
     plt.grid(True)
     plt.xlim([273 - 60, 273 - 20])
     plt.ylim([0, 50])
-    plt.show()
+    #plt.show()
     return
 
 plot_aircraft('1b')
@@ -239,7 +239,7 @@ plot_aircraft('1d')
 plot_aircraft('1f-b')
 plot_aircraft('1f-c')
 plot_aircraft('1f-d')
-
+plt.show()
 ## question 2
 tau = 0.2
 sigma = 5.670374419 * 10**(-8) #Wm^-2K^-4
