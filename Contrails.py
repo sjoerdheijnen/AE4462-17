@@ -105,18 +105,13 @@ e_threshold1f1, T_tangent1f1, T_intersect1f1 = threshold_line(G1f1, offset1f1, e
 e_threshold1f2, T_tangent1f2, T_intersect1f2 = threshold_line(G1f2, offset1f2, e_mixing1f2, 'liquid')
 e_threshold1f3, T_tangent1f3, T_intersect1f3 = threshold_line(G1f3, offset1f3, e_mixing1f3, 'liquid')
 
+#plots first set of mixing lines
 plt.figure()
 plt.plot(T, ep_liquid_lst, label="Liquid saturation curve", color='b')
 plt.plot(T, ep_ice_lst, label="Ice saturation curve", color='c')
 plt.plot(T_mix1b, e_mixing1b, label='Mixing Line aircraft 1b', linestyle='--', color='r')
 plt.plot(T_mix1c, e_mixing1c, label='Mixing Line aircraft 1c', linestyle='--', color='limegreen')
 plt.plot(T_mix1d, e_mixing1d, label='Mixing Line aircraft 1d', linestyle='--', color='magenta')
-
-# plt.plot(T, e_threshold1b, color='green', zorder=5, label='Threshold line')
-# plt.fill_between(T, ep_liquid_lst, e_threshold1b, where=(T <= T_tangent1b),
-#                   interpolate=True, color='yellow', alpha=0.3, label='Dissipative Contrails')
-# plt.fill_between(T, ep_ice_lst, e_threshold1b, where=(T <= T_intersect1b),
-#                   interpolate=True, color='gray', alpha=0.3, label='Persistent Contrails')
 
 plt.scatter(225,1.1 * saturation_vapor_pressure(225, 'ice')[1], marker='.', label='Atmospheric Condition',color='black', zorder=7)
 plt.axvline(x=225, color='gray', linestyle=':', label=f'Ambient Temperature = {225} K')
@@ -130,6 +125,7 @@ plt.xlim([273-60,273-20])
 plt.ylim([0,50])
 #plt.show()
 
+#plots second set of mixing lines
 plt.figure()
 plt.plot(T, ep_liquid_lst, label="Liquid saturation curve", color='b')
 plt.plot(T, ep_ice_lst, label="Ice saturation curve", color='c')
@@ -239,7 +235,7 @@ plot_aircraft('1d')
 plot_aircraft('1f-b')
 plot_aircraft('1f-c')
 plot_aircraft('1f-d')
-plt.show()
+
 ## question 2
 tau = 0.2
 sigma = 5.670374419 * 10**(-8) #Wm^-2K^-4
@@ -292,7 +288,7 @@ def RF(tau,T0,W,tf,L_flown,eta_contrail):
     RF_total = (EF_total / T_year) / A_earth  # W/m2
     return RF_total
 
-#change these parameters to see the change in RF
+#change these parameters to see the change in RF, meant to identify which input changes the RF is sensitive too
 tau_test = 0.1
 T0_test = 288.15 #K
 tf_test = 3 #h
@@ -302,3 +298,5 @@ eta_contrail_test = 0.1
 RF_test = RF(tau_test,T0_test,W_test * 10**3,tf_test * 3600,L_flown_test * 10**12,eta_contrail_test)
 
 print(f"New radiative forcing: {round(RF_test*1000,1)} mW/m^2 with a relative difference of {round((RF_test-RF_total)/RF_total*100,2)} %")
+
+plt.show()
