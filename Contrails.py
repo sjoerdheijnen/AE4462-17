@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.optimize as opt
 ## question 1
 
 #Constants and parameters
@@ -60,13 +61,49 @@ def mixing_line(T,eta,P,t,humid,fuel,state):
     T_mix = np.array(T_mix)
 
     e_mixing = G * (T_mix - t) + humid * saturation_vapor_pressure(t, state)[1]
+    offset = -t * G + humid * saturation_vapor_pressure(t, state)[1]
 
-    return e_mixing, T_mix
+    return e_mixing, T_mix, offset, G
 
 #first plot mixing line conditions
-e_mixing1b, T_mix1b = mixing_line(T,0.3,22000,225,1.1,'kerosene','ice')
-e_mixing1c, T_mix1c = mixing_line(T,0.4,22000,225,1.1,'kerosene','ice')
-e_mixing1d, T_mix1d = mixing_line(T,0.4,22000,225,1.1,'hydrogen','ice')
+e_mixing1b, T_mix1b, offset1b, G1b = mixing_line(T,0.3,22000,225,1.1,'kerosene','ice')
+e_mixing1c, T_mix1c, offset1c, G1c = mixing_line(T,0.4,22000,225,1.1,'kerosene','ice')
+e_mixing1d, T_mix1d, offset1d, G1d = mixing_line(T,0.4,22000,225,1.1,'hydrogen','ice')
+
+#second plot mixing line conditions
+e_mixing1f1, T_mix1f1, offset1f1, G1f1 = mixing_line(T,0.3,25000,230,0.6,'kerosene','liquid')
+e_mixing1f2, T_mix1f2, offset1f2, G1f2 = mixing_line(T,0.4,25000,230,0.6,'kerosene','liquid')
+e_mixing1f3, T_mix1f3, offset1f3, G1f3 = mixing_line(T,0.4,25000,230,0.6,'hydrogen','liquid')
+
+#Constructs the threshold line for a given mixing line
+def threshold_line(G, offset, e_mixing, state):
+    e_atm = [ep_ice_lst, ep_liquid_lst]
+
+    difference = np.abs(np.array(np.gradient(e_atm[1])) - G)
+    index = difference.argmin()
+    T_tangent = T[index]
+
+    e_tangent = saturation_vapor_pressure(T_tangent,state)[1]
+    offset = e_tangent - T_tangent * G
+    e_threshold = T * G + offset
+
+    difference2 = e_atm[0] - e_threshold
+    sign_change = np.where(np.diff(np.sign(difference2)))[0]
+
+    index2 = sign_change[0]
+
+    T_intersect = T[index2]
+
+    return e_threshold, T_tangent, T_intersect
+
+
+#threshold line construction for each aircraft
+e_threshold1b, T_tangent1b, T_intersect1b = threshold_line(G1b, offset1b, e_mixing1b, 'liquid')
+e_threshold1c, T_tangent1c, T_intersect1c = threshold_line(G1c, offset1c, e_mixing1c, 'liquid')
+e_threshold1d, T_tangent1d, T_intersect1d = threshold_line(G1d, offset1d, e_mixing1d, 'liquid')
+e_threshold1f1, T_tangent1f1, T_intersect1f1 = threshold_line(G1f1, offset1f1, e_mixing1f1, 'liquid')
+e_threshold1f2, T_tangent1f2, T_intersect1f2 = threshold_line(G1f2, offset1f2, e_mixing1f2, 'liquid')
+e_threshold1f3, T_tangent1f3, T_intersect1f3 = threshold_line(G1f3, offset1f3, e_mixing1f3, 'liquid')
 
 plt.figure()
 plt.plot(T, ep_liquid_lst, label="Liquid", color='b')
@@ -75,22 +112,25 @@ plt.plot(T_mix1b, e_mixing1b, label='Mixing Line aircraft 1b', linestyle='--', c
 plt.plot(T_mix1c, e_mixing1c, label='Mixing Line aircraft 1c', linestyle='--', color='limegreen')
 plt.plot(T_mix1d, e_mixing1d, label='Mixing Line aircraft 1d', linestyle='--', color='magenta')
 
+# plt.plot(T, e_threshold1b, color='green', zorder=5, label='Threshold line')
+# plt.fill_between(T, ep_liquid_lst, e_threshold1b, where=(T <= T_tangent1b),
+#                   interpolate=True, color='yellow', alpha=0.3, label='Dissipative Contrails')
+# plt.fill_between(T, ep_ice_lst, e_threshold1b, where=(T <= T_intersect1b),
+#                   interpolate=True, color='gray', alpha=0.3, label='Persistent Contrails')
+
 plt.scatter(225,1.1 * saturation_vapor_pressure(225, 'ice')[1], marker='.', label='Atmospheric Condition',color='black', zorder=7)
 plt.axvline(x=225, color='gray', linestyle=':', label=f'Ambient Temperature = {225} K')
 
 plt.xlabel("Temperature (K)")
 plt.ylabel("$e_p$ [Pa]")
-plt.title("Saturation Vapor Pressure")
+#plt.title("Saturation Vapor Pressure")
 plt.legend()
 plt.grid(True)
 plt.xlim([273-60,273-20])
 plt.ylim([0,50])
 plt.show()
 
-#second plot mixing line conditions
-e_mixing1f1, T_mix1f1 = mixing_line(T,0.3,25000,230,0.6,'kerosene','liquid')
-e_mixing1f2, T_mix1f2 = mixing_line(T,0.4,25000,230,0.6,'kerosene','liquid')
-e_mixing1f3, T_mix1f3 = mixing_line(T,0.4,25000,230,0.6,'hydrogen','liquid')
+
 
 plt.figure()
 plt.plot(T, ep_liquid_lst, label="Liquid", color='b')
@@ -104,7 +144,7 @@ plt.axvline(x=230, color='gray', linestyle=':', label=f'Ambient Temperature = {2
 
 plt.xlabel("Temperature (K)")
 plt.ylabel("$e_p$ [Pa]")
-plt.title("Saturation Vapor Pressure")
+#plt.title("Saturation Vapor Pressure")
 plt.legend()
 plt.grid(True)
 plt.xlim([273-60,273-20])
@@ -112,8 +152,98 @@ plt.ylim([0,50])
 plt.show()
 
 
+# plots threshold line and contrail area for given aircraft
+def plot_aircraft(ac):
+    plt.figure()
+    plt.plot(T, ep_liquid_lst, label="Liquid", color='b')
+    plt.plot(T, ep_ice_lst, label="Ice", color='c')
+
+    if ac == '1b':
+        plt.plot(T_mix1b, e_mixing1b, label='Mixing Line aircraft 1b', linestyle='--', color='r')
+        plt.plot(T, e_threshold1b, color='green', zorder=5, label='Threshold line')
+        plt.fill_between(T, ep_liquid_lst, e_threshold1b, where=(T <= T_tangent1b),
+                         interpolate=True, color='yellow', alpha=0.3, label='Dissipative Contrails')
+        plt.fill_between(T, ep_ice_lst, e_threshold1b, where=(T <= T_intersect1b),
+                         interpolate=True, color='gray', alpha=0.3, label='Persistent Contrails')
+
+        plt.scatter(225, 1.1 * saturation_vapor_pressure(225, 'ice')[1], marker='.', label='Atmospheric Condition',
+                    color='black', zorder=7)
+        plt.axvline(x=225, color='gray', linestyle=':', label=f'Ambient Temperature = {225} K')
+    elif ac == '1c':
+        plt.plot(T_mix1c, e_mixing1c, label='Mixing Line aircraft 1c', linestyle='--', color='limegreen')
+        plt.plot(T, e_threshold1c, color='green', zorder=5, label='Threshold line')
+        plt.fill_between(T, ep_liquid_lst, e_threshold1c, where=(T <= T_tangent1c),
+                         interpolate=True, color='yellow', alpha=0.3, label='Dissipative Contrails')
+        plt.fill_between(T, ep_ice_lst, e_threshold1c, where=(T <= T_intersect1c),
+                         interpolate=True, color='gray', alpha=0.3, label='Persistent Contrails')
+
+        plt.scatter(225, 1.1 * saturation_vapor_pressure(225, 'ice')[1], marker='.', label='Atmospheric Condition',
+                    color='black', zorder=7)
+        plt.axvline(x=225, color='gray', linestyle=':', label=f'Ambient Temperature = {225} K')
+    elif ac == '1d':
+        plt.plot(T_mix1d, e_mixing1d, label='Mixing Line aircraft 1d', linestyle='--', color='magenta')
+        plt.plot(T, e_threshold1d, color='green', zorder=5, label='Threshold line')
+        plt.fill_between(T, ep_liquid_lst, e_threshold1d, where=(T <= T_tangent1d),
+                         interpolate=True, color='yellow', alpha=0.3, label='Dissipative Contrails')
+        plt.fill_between(T, ep_ice_lst, e_threshold1d, where=(T <= T_intersect1d),
+                         interpolate=True, color='gray', alpha=0.3, label='Persistent Contrails')
+
+        plt.scatter(225, 1.1 * saturation_vapor_pressure(225, 'ice')[1], marker='.', label='Atmospheric Condition',
+                    color='black', zorder=7)
+        plt.axvline(x=225, color='gray', linestyle=':', label=f'Ambient Temperature = {225} K')
+    elif ac == '1f-b':
+        plt.plot(T_mix1f1, e_mixing1f1, label='Mixing Line aircraft 1f-b', linestyle='--', color='r')
+        plt.plot(T, e_threshold1f1, color='green', zorder=5, label='Threshold line')
+        plt.fill_between(T, ep_liquid_lst, e_threshold1f1, where=(T <= T_tangent1f1),
+                         interpolate=True, color='yellow', alpha=0.3, label='Dissipative Contrails')
+        plt.fill_between(T, ep_ice_lst, e_threshold1f1, where=(T <= T_intersect1f1),
+                         interpolate=True, color='gray', alpha=0.3, label='Persistent Contrails')
+
+        plt.scatter(230, 0.6 * saturation_vapor_pressure(230, 'liquid')[1], marker='.', label='Atmospheric Condition',
+                    color='black', zorder=7)
+        plt.axvline(x=230, color='gray', linestyle=':', label=f'Ambient Temperature = {230} K')
+    elif ac == '1f-c':
+        plt.plot(T_mix1f2, e_mixing1f2, label='Mixing Line aircraft 1f-c', linestyle='--', color='limegreen')
+        plt.plot(T, e_threshold1f2, color='green', zorder=5, label='Threshold line')
+        plt.fill_between(T, ep_liquid_lst, e_threshold1f2, where=(T <= T_tangent1f2),
+                         interpolate=True, color='yellow', alpha=0.3, label='Dissipative Contrails')
+        plt.fill_between(T, ep_ice_lst, e_threshold1f2, where=(T <= T_intersect1f2),
+                         interpolate=True, color='gray', alpha=0.3, label='Persistent Contrails')
+
+        plt.scatter(230, 0.6 * saturation_vapor_pressure(230, 'liquid')[1], marker='.', label='Atmospheric Condition',
+                    color='black', zorder=7)
+        plt.axvline(x=230, color='gray', linestyle=':', label=f'Ambient Temperature = {230} K')
+    elif ac == '1f-d':
+        plt.plot(T_mix1f3, e_mixing1f3, label='Mixing Line aircraft 1d', linestyle='--', color='magenta')
+        plt.plot(T, e_threshold1f3, color='green', zorder=5, label='Threshold line')
+        plt.fill_between(T, ep_liquid_lst, e_threshold1f3, where=(T <= T_tangent1f3),
+                         interpolate=True, color='yellow', alpha=0.3, label='Dissipative Contrails')
+        plt.fill_between(T, ep_ice_lst, e_threshold1f3, where=(T <= T_intersect1f3),
+                         interpolate=True, color='gray', alpha=0.3, label='Persistent Contrails')
+
+        plt.scatter(230, 0.6 * saturation_vapor_pressure(230, 'liquid')[1], marker='.', label='Atmospheric Condition',
+                    color='black', zorder=7)
+        plt.axvline(x=230, color='gray', linestyle=':', label=f'Ambient Temperature = {230} K')
+
+    plt.xlabel("Temperature (K)")
+    plt.ylabel("$e_p$ [Pa]")
+    # plt.title("Saturation Vapor Pressure")
+    plt.legend()
+    plt.grid(True)
+    plt.xlim([273 - 60, 273 - 20])
+    plt.ylim([0, 50])
+    plt.show()
+    return
+
+plot_aircraft('1b')
+plot_aircraft('1c')
+plot_aircraft('1d')
+plot_aircraft('1f-b')
+plot_aircraft('1f-c')
+plot_aircraft('1f-d')
+
 ## question 2
-tau = 0.1
+tau = 0.2
 sigma = 5.670374419 * 10**(-8) #Wm^-2K^-4
 T0 = 288.15 #K
 tf = 3*3600 #s
