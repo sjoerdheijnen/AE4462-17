@@ -156,9 +156,9 @@ def plot_aircraft(ac):
         plt.plot(T_mix1b, e_mixing1b, label='Mixing Line aircraft 1b', linestyle='--', color='r')
         plt.plot(T, e_threshold1b, color='green', zorder=5, label='Threshold line')
         plt.fill_between(T, ep_liquid_lst, e_threshold1b, where=(T <= T_tangent1b),
-                         interpolate=True, color='yellow', alpha=0.7, label='Persistent Contrails')
+                         interpolate=True, color='orange', alpha=0.7, label='Persistent Contrails')
         plt.fill_between(T, ep_ice_lst, e_threshold1b, where=(T <= T_intersect1b),
-                         interpolate=True, color='orange', alpha=1, label='Dissipative Contrails')
+                         interpolate=True, color='yellow', alpha=1, label='Dissipative Contrails')
 
         plt.scatter(225, 1.1 * saturation_vapor_pressure(225, 'ice')[1], marker='.', label='Atmospheric Condition',
                     color='black', zorder=7)
@@ -167,9 +167,9 @@ def plot_aircraft(ac):
         plt.plot(T_mix1c, e_mixing1c, label='Mixing Line aircraft 1c', linestyle='--', color='limegreen')
         plt.plot(T, e_threshold1c, color='green', zorder=5, label='Threshold line')
         plt.fill_between(T, ep_liquid_lst, e_threshold1c, where=(T <= T_tangent1c),
-                         interpolate=True, color='yellow', alpha=0.7, label='Persistent Contrails')
+                         interpolate=True, color='orange', alpha=0.7, label='Persistent Contrails')
         plt.fill_between(T, ep_ice_lst, e_threshold1c, where=(T <= T_intersect1c),
-                         interpolate=True, color='orange', alpha=1, label='Dissipative Contrails')
+                         interpolate=True, color='yellow', alpha=1, label='Dissipative Contrails')
 
         plt.scatter(225, 1.1 * saturation_vapor_pressure(225, 'ice')[1], marker='.', label='Atmospheric Condition',
                     color='black', zorder=7)
@@ -178,9 +178,9 @@ def plot_aircraft(ac):
         plt.plot(T_mix1d, e_mixing1d, label='Mixing Line aircraft 1d', linestyle='--', color='magenta')
         plt.plot(T, e_threshold1d, color='green', zorder=5, label='Threshold line')
         plt.fill_between(T, ep_liquid_lst, e_threshold1d, where=(T <= T_tangent1d),
-                         interpolate=True, color='yellow', alpha=0.7, label='Persistent Contrails')
+                         interpolate=True, color='orange', alpha=0.7, label='Persistent Contrails')
         plt.fill_between(T, ep_ice_lst, e_threshold1d, where=(T <= T_intersect1d),
-                         interpolate=True, color='orange', alpha=1, label='Dissipative Contrails')
+                         interpolate=True, color='yellow', alpha=1, label='Dissipative Contrails')
 
         plt.scatter(225, 1.1 * saturation_vapor_pressure(225, 'ice')[1], marker='.', label='Atmospheric Condition',
                     color='black', zorder=7)
@@ -189,9 +189,9 @@ def plot_aircraft(ac):
         plt.plot(T_mix1f1, e_mixing1f1, label='Mixing Line aircraft 1f-b', linestyle='--', color='r')
         plt.plot(T, e_threshold1f1, color='green', zorder=5, label='Threshold line')
         plt.fill_between(T, ep_liquid_lst, e_threshold1f1, where=(T <= T_tangent1f1),
-                         interpolate=True, color='yellow', alpha=0.7, label='Persistent Contrails')
+                         interpolate=True, color='orange', alpha=0.7, label='Persistent Contrails')
         plt.fill_between(T, ep_ice_lst, e_threshold1f1, where=(T <= T_intersect1f1),
-                         interpolate=True, color='orange', alpha=1, label='Dissipative Contrails')
+                         interpolate=True, color='yellow', alpha=1, label='Dissipative Contrails')
 
         plt.scatter(230, 0.6 * saturation_vapor_pressure(230, 'liquid')[1], marker='.', label='Atmospheric Condition',
                     color='black', zorder=7)
@@ -200,9 +200,9 @@ def plot_aircraft(ac):
         plt.plot(T_mix1f2, e_mixing1f2, label='Mixing Line aircraft 1f-c', linestyle='--', color='limegreen')
         plt.plot(T, e_threshold1f2, color='green', zorder=5, label='Threshold line')
         plt.fill_between(T, ep_liquid_lst, e_threshold1f2, where=(T <= T_tangent1f2),
-                         interpolate=True, color='yellow', alpha=0.7, label='Persistent Contrails')
+                         interpolate=True, color='orange', alpha=0.7, label='Persistent Contrails')
         plt.fill_between(T, ep_ice_lst, e_threshold1f2, where=(T <= T_intersect1f2),
-                         interpolate=True, color='orange', alpha=1, label='Dissipative Contrails')
+                         interpolate=True, color='yellow', alpha=1, label='Dissipative Contrails')
 
         plt.scatter(230, 0.6 * saturation_vapor_pressure(230, 'liquid')[1], marker='.', label='Atmospheric Condition',
                     color='black', zorder=7)
@@ -211,9 +211,9 @@ def plot_aircraft(ac):
         plt.plot(T_mix1f3, e_mixing1f3, label='Mixing Line aircraft 1d', linestyle='--', color='magenta')
         plt.plot(T, e_threshold1f3, color='green', zorder=5, label='Threshold line')
         plt.fill_between(T, ep_liquid_lst, e_threshold1f3, where=(T <= T_tangent1f3),
-                         interpolate=True, color='yellow', alpha=0.7, label='Persistent Contrails')
+                         interpolate=True, color='orange', alpha=0.7, label='Persistent Contrails')
         plt.fill_between(T, ep_ice_lst, e_threshold1f3, where=(T <= T_intersect1f3),
-                         interpolate=True, color='orange', alpha=1, label='Dissipative Contrails')
+                         interpolate=True, color='yellow', alpha=1, label='Dissipative Contrails')
 
         plt.scatter(230, 0.6 * saturation_vapor_pressure(230, 'liquid')[1], marker='.', label='Atmospheric Condition',
                     color='black', zorder=7)
