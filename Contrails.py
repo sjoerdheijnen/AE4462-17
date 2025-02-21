@@ -208,7 +208,7 @@ def plot_aircraft(ac):
                     color='black', zorder=7)
         plt.axvline(x=230, color='gray', linestyle=':', label=f'Ambient Temperature = {230} K')
     elif ac == '1f-d':
-        plt.plot(T_mix1f3, e_mixing1f3, label='Mixing Line aircraft 1d', linestyle='--', color='magenta')
+        plt.plot(T_mix1f3, e_mixing1f3, label='Mixing Line aircraft 1f-d', linestyle='--', color='magenta')
         plt.plot(T, e_threshold1f3, color='green', zorder=5, label='Threshold line')
         plt.fill_between(T, ep_liquid_lst, e_threshold1f3, where=(T <= T_tangent1f3),
                          interpolate=True, color='yellow', alpha=0.7, label='Persistent Contrails')
