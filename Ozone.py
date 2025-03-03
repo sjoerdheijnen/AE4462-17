@@ -51,7 +51,7 @@ plt.title("Ozone Mixing Ratio in Latitude-Pressure Grid (2019)")
 
 # concentration plot
 plt.figure(figsize=(10, 6))
-levels = np.logspace(np.log10(min(concentration)), np.log10(max(concentration)), num=20)
+levels = np.logspace(np.log10(min(concentration)), np.log10(max(concentration)), num=100)
 contour = plt.contourf(lat_grid, 10**plev_grid, C_O3_grid, levels=levels, cmap="seismic", norm=mcolors.LogNorm())
 
 #contour = plt.contourf(lat_grid, 10**plev_grid, O3_grid, levels=100, cmap="viridis", norm=mcolors.LogNorm())
@@ -71,7 +71,7 @@ for i in range(len(O3)):
 
 # find high ozone concentrations
 threshold = np.percentile(O3, 95)  # top 5%
-threshold2 = np.percentile(concentration, 95)  # top 5%
+threshold2 = np.percentile(concentration, 98)  # top 2%
 ozone_layer = p[O3 >= threshold]
 ozone_layer2 = p[concentration >= threshold2]
 
@@ -108,7 +108,7 @@ def pressure_to_altitude(p):
             if a!=0:
                 return h_start + (T / a) * (1 - (p / p_current) ** (a * R_air / g0))
             else:
-                return h_start + (p - p_current) * R_air * T / g0 #this is incorrect, the zero lapse rate is causing issues
+                return h_start + (R_air * T / g0) * np.log(p_current / p)
 
         T = T_next
         p_current = p_next
@@ -117,8 +117,9 @@ def pressure_to_altitude(p):
 
 altitudes = np.array([pressure_to_altitude(p) for p in ozone_layer])
 altitudes2 = np.array([pressure_to_altitude(p) for p in ozone_layer2])
-
+print(f"Ozone layer pressure range based on mixing ratio: {np.min(ozone_layer):.2f} Pa - {np.max(ozone_layer):.2f} Pa")
+print(f"Ozone layer pressure range based on mixing ratio: {np.min(ozone_layer2):.2f} Pa - {np.max(ozone_layer2):.2f} Pa")
 print(f"Ozone layer altitude range based on mixing ratio: {np.min(altitudes)/1000:.2f} km - {np.max(altitudes)/1000:.2f} km")
-print(f"Ozone layer altitude range based on concentration: {np.min(altitudes2)/1000:.2f} km - {np.max(altitudes2)/1000:.2f} km") #still incorrect
+print(f"Ozone layer altitude range based on concentration: {np.min(altitudes2)/1000:.2f} km - {np.max(altitudes2)/1000:.2f} km")
 
 plt.show()
