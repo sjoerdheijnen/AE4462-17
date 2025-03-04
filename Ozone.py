@@ -71,7 +71,7 @@ for i in range(len(O3)):
 
 # find high ozone concentrations
 threshold = np.percentile(O3, 95)  # top 5%
-threshold2 = np.percentile(concentration, 98)  # top 2%
+threshold2 = np.percentile(concentration, 90)  # top 10%
 ozone_layer = p[O3 >= threshold]
 ozone_layer2 = p[concentration >= threshold2]
 
@@ -118,8 +118,45 @@ def pressure_to_altitude(p):
 altitudes = np.array([pressure_to_altitude(p) for p in ozone_layer])
 altitudes2 = np.array([pressure_to_altitude(p) for p in ozone_layer2])
 print(f"Ozone layer pressure range based on mixing ratio: {np.min(ozone_layer):.2f} Pa - {np.max(ozone_layer):.2f} Pa")
-print(f"Ozone layer pressure range based on mixing ratio: {np.min(ozone_layer2):.2f} Pa - {np.max(ozone_layer2):.2f} Pa")
+print(f"Ozone layer pressure range based on concentration: {np.min(ozone_layer2):.2f} Pa - {np.max(ozone_layer2):.2f} Pa")
+print(" ")
 print(f"Ozone layer altitude range based on mixing ratio: {np.min(altitudes)/1000:.2f} km - {np.max(altitudes)/1000:.2f} km")
 print(f"Ozone layer altitude range based on concentration: {np.min(altitudes2)/1000:.2f} km - {np.max(altitudes2)/1000:.2f} km")
 
+## question 2
+
+#initial mixing ratios
+O3_0 = 0 # nmol/mol
+NO_0 = np.linspace(0,10**9,1000)
+NO2_0 = np.linspace(0,10**9,1000)
+print(NO_0)
+alpha = 10 #nmol/mol
+
+def O3_ss(NO_0,NO2_0,zero):
+
+    O3 = []
+
+    if zero==1:
+        NO_0 = np.zeros(len(NO_0))
+    elif zero==2:
+        NO_0 = np.zeros(len(NO2_0))
+
+
+    for i in range(len(NO_0)):
+        O3_ss = -0.5 * (NO_0[i] - O3_0 + alpha) + 0.5 * ((NO_0[i] - O3_0 + alpha)**2 + 4 * alpha * (NO2_0[i] + O3_0))**0.5
+        O3.append(O3_ss)
+
+    return np.array(O3)
+
+O3_ss1 = O3_ss(NO_0,NO2_0,2)
+O3_ss2 = O3_ss(NO_0,NO2_0,2)
+O3_ss = O3_ss(NO_0,NO2_0,2)
+
+print(O3_ss1)
+
+plt.figure(figsize=(10,6))
+plt.plot(NO_0,O3_ss1)
+plt.plot(NO_0,O3_ss2)
+plt.plot(NO_0,O3_ss)
+plt.legend()
 plt.show()
