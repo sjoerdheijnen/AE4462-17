@@ -46,7 +46,8 @@ plt.ylabel("[HO2] (molecules/cm³)")
 plt.title("Dependency of [HO2] on [NO]")
 plt.legend()
 plt.grid(True)
-plt.show()
+plt.savefig("HO2vsNO.png")
+#plt.show()
 
 # Plot 2: PO3 vs [NO]
 plt.figure(figsize=(8, 6))
@@ -56,7 +57,8 @@ plt.ylabel("PO3 (molecules/cm³/s)")
 plt.title("Dependency of Ozone Production PO3 on [NO]")
 plt.legend()
 plt.grid(True)
-plt.show()
+plt.savefig("P03vsNO.png")
+#plt.show()
 
 # Load Data
 files = {
@@ -93,37 +95,61 @@ for station in stations:
 
 
 
-# # Create scatter plots for [O3] vs. [NOx]
-# plt.figure(figsize=(10, 6))
+# Create scatter plots for [O3] vs. [NOx]
+plt.figure(figsize=(10, 6))
 
-# for station, data in station_data.items():
-#     plt.scatter(data["NOx"], data["O3"], label=station, alpha=0.3, marker=".", s=5)
+for station, data in station_data.items():
+    plt.scatter(data["NOx"], data["O3"], label=station, alpha=0.4, s=10)#, marker=".", s=10)
 
-# plt.xscale("log")  # Log scale for NOx
-# plt.xlabel("[NOx] (µg/m³)")
-# plt.ylabel("[O3] (µg/m³)")
-# plt.title("Scatter Plot of [O3] vs. [NOx] for Different Stations")
-# plt.legend()
-# plt.grid(True)
+plt.xscale("log")  # Log scale for NOx
+plt.xlabel("[NOx] (µg/m³)")
+plt.ylabel("[O3] (µg/m³)")
+plt.title("Scatter Plot of [O3] vs. [NOx] for Different Stations")
+plt.legend(fontsize=12)
+plt.xlim(1, 100)
+plt.ylim(0, 180)
+plt.grid(True)
+plt.savefig("scatter_plot.png")
+#plt.show()
+
+
+# # Create a figure with 3 subplots (1 row, 3 columns)
+# fig, axes = plt.subplots(1, 3, figsize=(15, 5), sharey=True)  # Share y-axis for better comparison
+
+# # Loop through each station and assign each to a subplot
+# for i, (station, data) in enumerate(station_data.items()):
+#     axes[i].scatter(data["NOx"], data["O3"], label=station, alpha=0.3, marker=".", s=5)
+#     axes[i].set_xscale("log")  # Log scale for NOx
+#     axes[i].set_xlim(1, 100)  # Set x-axis limits individually for each subplot
+#     axes[i].set_xlabel("[NOx] (µg/m³)")
+#     axes[i].set_title(f"{station} Station", fontsize=12, fontweight="bold")
+#     axes[i].grid(True)
+#     fig.savefig(f"{station}_scatter_plot.png", dpi=300, bbox_inches="tight")
+
+# # Set shared y-axis label
+# axes[0].set_ylabel("[O3] (µg/m³)")
+
+# # Adjust layout for better spacing
+# plt.tight_layout()
+# plt.xlim(1, 100)
+
+# # Show the figure with three subplots
 # plt.show()
 
+# Loop through each station and create a separate figure
+for station, data in station_data.items():
+    plt.figure(figsize=(6, 4))  # Create a new figure for each station
 
-# Create a figure with 3 subplots (1 row, 3 columns)
-fig, axes = plt.subplots(1, 3, figsize=(15, 5), sharey=True)  # Share y-axis for better comparison
+    # Scatter plot
+    plt.scatter(data["NOx"], data["O3"], label=station, alpha=0.3, marker=".", s=5)
+    plt.xscale("log")  # Log scale for NOx
+    plt.xlim(1, 100)  # Set x-axis limits
+    plt.ylim(0, 200)
+    plt.xlabel("[NOx] (µg/m³)")
+    plt.ylabel("[O3] (µg/m³)")
+    #plt.title(f"{station} Station", fontsize=12, fontweight="bold")
+    plt.grid(True)
 
-# Loop through each station and assign each to a subplot
-for i, (station, data) in enumerate(station_data.items()):
-    axes[i].scatter(data["NOx"], data["O3"], label=station, alpha=0.3, marker=".", s=5)
-    axes[i].set_xscale("log")  # Log scale for NOx
-    axes[i].set_xlabel("[NOx] (µg/m³)")
-    axes[i].set_title(f"{station} Station", fontsize=12, fontweight="bold")
-    axes[i].grid(True)
-
-# Set shared y-axis label
-axes[0].set_ylabel("[O3] (µg/m³)")
-
-# Adjust layout for better spacing
-plt.tight_layout()
-
-# Show the figure with three subplots
-plt.show()
+    # Save each figure separately
+    plt.savefig(f"{station}_scatter_plot.png", dpi=300, bbox_inches="tight")
+    plt.close()
