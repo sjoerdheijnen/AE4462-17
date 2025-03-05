@@ -4,6 +4,7 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from scipy.interpolate import griddata
+from scipy.stats import linregress  # Import for R-value calculation
 
 
 # CONSTANTS 
@@ -141,7 +142,7 @@ for station, data in station_data.items():
     plt.figure(figsize=(6, 4))  # Create a new figure for each station
 
     # Scatter plot
-    plt.scatter(data["NOx"], data["O3"], label=station, alpha=0.3, marker=".", s=5)
+    plt.scatter(data["NOx"], data["O3"], label=f"_nolegend_", alpha=0.3, marker=".", s=5)
     plt.xscale("log")  # Log scale for NOx
     plt.xlim(1, 100)  # Set x-axis limits
     plt.ylim(0, 200)
@@ -163,14 +164,24 @@ for station, data in station_data.items():
     x_clean = x[mask]
     y_clean = y[mask]
 
+    legend_handles = []
     # Fit and plot trendline only if enough data points exist
     if len(x_clean) > 1:
-        coeffs1 = np.polyfit(x_clean, y_clean, 1)
+        # Calculate linear regression (slope, intercept, r-value)
+        slope, intercept, r_value, p_value, std_err = linregress(x_clean, y_clean)
+        
+        # Generate trendline points
         x_trend = np.linspace(np.log10(1), np.log10(100), 100)
-        y_trend1 = np.polyval(coeffs1, x_trend)
-        plt.plot(10**x_trend, y_trend1, linestyle="dashed", color="red", alpha=0.8, linewidth=2, label="Linear Trend")
+        y_trend1 = slope * x_trend + intercept
+        trendline, = plt.plot(10**x_trend, y_trend1, linestyle="dashed", color="red", alpha=0.7, linewidth=2, label=f"Linear Fit (R={r_value:.2f})")
 
+        legend_handles.append(trendline)
 
+    from matplotlib.lines import Line2D
+    legend_marker = Line2D([0], [0], marker="o", color="w", markerfacecolor="blue", alpha=0.8, markersize=5, label=f"Measurements")
+    legend_handles.append(legend_marker)
+
+    plt.legend(handles=legend_handles, loc="upper right")
 
     # Save each figure separately
     plt.savefig(f"{station}_scatter_plot.png", dpi=300, bbox_inches="tight")
