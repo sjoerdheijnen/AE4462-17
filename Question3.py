@@ -181,7 +181,7 @@ for station, data in station_data.items():
     legend_marker = Line2D([0], [0], marker="o", color="w", markerfacecolor="blue", alpha=0.8, markersize=5, label=f"Measurements")
     legend_handles.append(legend_marker)
 
-    plt.legend(handles=legend_handles, loc="upper right")
+    plt.legend(handles=legend_handles, loc="upper right", fontsize=11)
 
     # Save each figure separately
     plt.savefig(f"{station}_scatter_plot.png", dpi=300, bbox_inches="tight")
