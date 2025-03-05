@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import math
+import os
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from scipy.interpolate import griddata
@@ -122,41 +123,137 @@ print(f"Ozone layer pressure range based on concentration: {np.min(ozone_layer2)
 print(" ")
 print(f"Ozone layer altitude range based on mixing ratio: {np.min(altitudes)/1000:.2f} km - {np.max(altitudes)/1000:.2f} km")
 print(f"Ozone layer altitude range based on concentration: {np.min(altitudes2)/1000:.2f} km - {np.max(altitudes2)/1000:.2f} km")
-
+print(" ")
 ## question 2
 
 #initial mixing ratios
 O3_0 = 0 # nmol/mol
-NO_0 = np.linspace(0,10**9,1000)
-NO2_0 = np.linspace(0,10**9,1000)
-print(NO_0)
+NO_0 = np.logspace(-2, 4, num=1000, base=10)
+NO2_0 = np.logspace(-2, 4, num=1000, base=10)
+
 alpha = 10 #nmol/mol
 
-def O3_ss(NO_0,NO2_0,zero):
+def O3_ss(NO_0,NO2_0,O3_0,zero):
 
-    O3 = []
+    if isinstance(NO_0, np.ndarray):
+        O3 = np.zeros(len(NO_0))
+    else:
+        O3 = 0
 
-    if zero==1:
-        NO_0 = np.zeros(len(NO_0))
-    elif zero==2:
-        NO_0 = np.zeros(len(NO2_0))
+    NO_0 = NO_0.copy()
+    NO2_0 = NO2_0.copy()
 
+    if isinstance(NO_0, np.ndarray):
+        if zero==1:
+            NO_0[:] = 0
 
-    for i in range(len(NO_0)):
-        O3_ss = -0.5 * (NO_0[i] - O3_0 + alpha) + 0.5 * ((NO_0[i] - O3_0 + alpha)**2 + 4 * alpha * (NO2_0[i] + O3_0))**0.5
-        O3.append(O3_ss)
+        elif zero==2:
+            NO2_0[:] = 0
+    else:
+        if zero == 1:
+            NO_0 = 0
 
-    return np.array(O3)
+        elif zero == 2:
+            NO2_0 = 0
 
-O3_ss1 = O3_ss(NO_0,NO2_0,2)
-O3_ss2 = O3_ss(NO_0,NO2_0,2)
-O3_ss = O3_ss(NO_0,NO2_0,2)
+    if isinstance(NO_0, np.ndarray):
+        for i in range(len(NO_0)):
+            O3[i] = -0.5 * (NO_0[i] - O3_0 + alpha) + 0.5 * (
+                        (NO_0[i] - O3_0 + alpha) ** 2 + 4 * alpha * (NO2_0[i] + O3_0)) ** 0.5
+    else:
+        O3 = -0.5 * (NO_0 - O3_0 + alpha) + 0.5 * ((NO_0 - O3_0 + alpha) ** 2 + 4 * alpha * (NO2_0 + O3_0)) ** 0.5
 
-print(O3_ss1)
+    return O3
 
+#generate O3 levels for the three cases
+O3_ss1 = O3_ss(NO_0,NO2_0,O3_0,2)
+O3_ss2 = O3_ss(NO_0,NO2_0,O3_0,1)
+O3_ss12 = O3_ss(NO_0,NO2_0,O3_0,0)
+
+#plot all three cases
 plt.figure(figsize=(10,6))
-plt.plot(NO_0,O3_ss1)
-plt.plot(NO_0,O3_ss2)
-plt.plot(NO_0,O3_ss)
+plt.plot(NO_0,O3_ss1,label="Initial mixing ratio of $NO$ only")
+plt.plot(NO_0,O3_ss2,label="Initial mixing ratio of $NO_2$ only")
+plt.plot(NO_0,O3_ss12,label="Same initial mixing ratios of $NO$ and $NO_2$")
 plt.legend()
+plt.xlabel("$NO_x$ mixing ratios [nmol/mol]")
+plt.ylabel("Steady state $O_3$ mixing ratio [nmol/mol]")
+plt.xscale("log")
+plt.yscale("linear")
+plt.ylim([-5, 20])
+plt.xlim([10**-2,10**4])
+plt.grid()
+
+# extract data from files
+station_mapping = {
+    "NL00418": "rotterdam",
+    "NL00131": "vredepeel",
+    "DEBY109": "andechs"
+}
+
+folder_path = "O3_NO_NO2_measurements"
+
+class MeasurementData:
+    def __init__(self, **datasets):
+        for molecule, df in datasets.items():
+            setattr(self, molecule, df.iloc[:, 0])
+
+stations = {}
+
+for file in os.listdir(folder_path):
+    if file.endswith(".csv"):
+        file_path = os.path.join(folder_path, file)
+        df = pd.read_csv(file_path, parse_dates=["time"], index_col="time")
+
+        parts = file.replace(".csv", "").split("_")
+
+
+        _, station_id, molecule = parts
+        station_name = station_mapping.get(station_id)
+
+        if station_name not in stations:
+            stations[station_name] = {}
+
+        stations[station_name][molecule] = df
+
+for station in stations:
+    stations[station] = MeasurementData(**stations[station])
+
+rotterdam = stations["rotterdam"]
+vredepeel = stations["vredepeel"]
+andechs = stations["andechs"]
+
+locations = [rotterdam, vredepeel, andechs]
+
+#conversion factors
+F_O3 = 2 #kg/m^3
+F_NO = 1.3 #kg/m^3
+F_NO2 = 1.9 #kg/m^3
+
+# find annual mean
+for station_name, station_data in stations.items():
+    for molecule, df in station_data.__dict__.items():
+        print(f"Station: {station_name}, {molecule}: Annual mean: {np.mean(df):.3f} µg/m³")
+    print(" ")
+
+# convert concentrations to annual mean initial mixing ratios
+for place in locations:
+    place.r_O3_0 = np.mean(place.O3) / F_O3
+    place.r_NO_0 = np.mean(place.NO) / F_NO
+    place.r_NO2_0 = np.mean(place.NO2) / F_NO2
+
+rotterdam.name = "Rotterdam"
+vredepeel.name = "Vredepeel"
+andechs.name = "Andechs"
+
+# find steady state ozone mixing ratios
+for place in locations:
+    place.O3_ss_mean = O3_ss(place.r_NO_0,place.r_NO2_0,place.r_O3_0,0)
+    print(f"Annual Mean Steady State Ozone Mixing Ratio in {place.name}: {place.O3_ss_mean:.3f} [nmol/mol]")
+    print(f"Annual Mean Steady State Ozone concentration in {place.name}: {place.O3_ss_mean*F_O3:.3f} [µg/m³]")
+    print(f"Percentage difference between observed mean and mean steady state concentration {(place.O3_ss_mean*F_O3-np.mean(place.O3))/np.mean(place.O3) * 100:.2f}% ")
+    print(" ")
+
+
 plt.show()
+
