@@ -153,6 +153,25 @@ for station, data in station_data.items():
     plt.yticks([0, 50, 100, 150, 200])  # Adjust values as needed
     plt.tick_params(axis='both', which='major', labelsize=12)
 
+    # **Fix: Remove problematic values before fitting trendline**
+    valid_indices = data["NOx"] > 0  # Remove zero or negative NOx values
+    x = np.log10(data["NOx"][valid_indices])  # Log-transform NOx safely
+    y = data["O3"][valid_indices]  # Keep corresponding O3 values
+
+    # Remove NaN or Inf values
+    mask = np.isfinite(x) & np.isfinite(y)
+    x_clean = x[mask]
+    y_clean = y[mask]
+
+    # Fit and plot trendline only if enough data points exist
+    if len(x_clean) > 1:
+        coeffs1 = np.polyfit(x_clean, y_clean, 1)
+        x_trend = np.linspace(np.log10(1), np.log10(100), 100)
+        y_trend1 = np.polyval(coeffs1, x_trend)
+        plt.plot(10**x_trend, y_trend1, linestyle="dashed", color="red", alpha=0.8, linewidth=2, label="Linear Trend")
+
+
+
     # Save each figure separately
     plt.savefig(f"{station}_scatter_plot.png", dpi=300, bbox_inches="tight")
     plt.close()
