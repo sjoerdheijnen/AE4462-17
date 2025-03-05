@@ -145,10 +145,13 @@ for station, data in station_data.items():
     plt.xscale("log")  # Log scale for NOx
     plt.xlim(1, 100)  # Set x-axis limits
     plt.ylim(0, 200)
-    plt.xlabel("[NOx] (µg/m³)")
-    plt.ylabel("[O3] (µg/m³)")
+    plt.xlabel("[NOx] (µg/m³)", fontsize=15)
+    plt.ylabel("[O3] (µg/m³)", fontsize=15)
     #plt.title(f"{station} Station", fontsize=12, fontweight="bold")
     plt.grid(True)
+
+    plt.yticks([0, 50, 100, 150, 200])  # Adjust values as needed
+    plt.tick_params(axis='both', which='major', labelsize=12)
 
     # Save each figure separately
     plt.savefig(f"{station}_scatter_plot.png", dpi=300, bbox_inches="tight")
