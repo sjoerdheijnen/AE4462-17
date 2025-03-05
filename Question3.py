@@ -4,6 +4,7 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from scipy.interpolate import griddata
+from scipy.stats import linregress  # Import for R-value calculation
 
 
 # CONSTANTS 
@@ -43,20 +44,22 @@ plt.figure(figsize=(8, 6))
 plt.plot(NO_range, HO2_values, label="[HO2] vs [NO]", color='b')
 plt.xlabel("[NO] (molecules/cm³)")
 plt.ylabel("[HO2] (molecules/cm³)")
-plt.title("Dependency of [HO2] on [NO]")
-plt.legend()
+#plt.title("Dependency of [HO2] on [NO]")
+plt.legend(fontsize=15)
 plt.grid(True)
-plt.show()
+plt.savefig("HO2vsNO.png")
+#plt.show()
 
 # Plot 2: PO3 vs [NO]
 plt.figure(figsize=(8, 6))
 plt.plot(NO_range, PO3_values, label="PO3 vs [NO]", color='r')
 plt.xlabel("[NO] (molecules/cm³)")
 plt.ylabel("PO3 (molecules/cm³/s)")
-plt.title("Dependency of Ozone Production PO3 on [NO]")
-plt.legend()
+#plt.title("Dependency of Ozone Production PO3 on [NO]")
+plt.legend(fontsize=15)
 plt.grid(True)
-plt.show()
+plt.savefig("P03vsNO.png")
+#plt.show()
 
 # Load Data
 files = {
@@ -93,37 +96,93 @@ for station in stations:
 
 
 
-# # Create scatter plots for [O3] vs. [NOx]
-# plt.figure(figsize=(10, 6))
+# Create scatter plots for [O3] vs. [NOx]
+plt.figure(figsize=(10, 6))
 
-# for station, data in station_data.items():
-#     plt.scatter(data["NOx"], data["O3"], label=station, alpha=0.3, marker=".", s=5)
+for station, data in station_data.items():
+    plt.scatter(data["NOx"], data["O3"], label=station, alpha=0.4, s=10)#, marker=".", s=10)
 
-# plt.xscale("log")  # Log scale for NOx
-# plt.xlabel("[NOx] (µg/m³)")
-# plt.ylabel("[O3] (µg/m³)")
-# plt.title("Scatter Plot of [O3] vs. [NOx] for Different Stations")
-# plt.legend()
-# plt.grid(True)
+plt.xscale("log")  # Log scale for NOx
+plt.xlabel("[NOx] (µg/m³)")
+plt.ylabel("[O3] (µg/m³)")
+plt.title("Scatter Plot of [O3] vs. [NOx] for Different Stations")
+plt.legend(fontsize=15)
+plt.xlim(1, 100)
+plt.ylim(0, 180)
+plt.grid(True)
+plt.savefig("scatter_plot.png")
+#plt.show()
+
+
+# # Create a figure with 3 subplots (1 row, 3 columns)
+# fig, axes = plt.subplots(1, 3, figsize=(15, 5), sharey=True)  # Share y-axis for better comparison
+
+# # Loop through each station and assign each to a subplot
+# for i, (station, data) in enumerate(station_data.items()):
+#     axes[i].scatter(data["NOx"], data["O3"], label=station, alpha=0.3, marker=".", s=5)
+#     axes[i].set_xscale("log")  # Log scale for NOx
+#     axes[i].set_xlim(1, 100)  # Set x-axis limits individually for each subplot
+#     axes[i].set_xlabel("[NOx] (µg/m³)")
+#     axes[i].set_title(f"{station} Station", fontsize=12, fontweight="bold")
+#     axes[i].grid(True)
+#     fig.savefig(f"{station}_scatter_plot.png", dpi=300, bbox_inches="tight")
+
+# # Set shared y-axis label
+# axes[0].set_ylabel("[O3] (µg/m³)")
+
+# # Adjust layout for better spacing
+# plt.tight_layout()
+# plt.xlim(1, 100)
+
+# # Show the figure with three subplots
 # plt.show()
 
+# Loop through each station and create a separate figure
+for station, data in station_data.items():
+    plt.figure(figsize=(6, 4))  # Create a new figure for each station
 
-# Create a figure with 3 subplots (1 row, 3 columns)
-fig, axes = plt.subplots(1, 3, figsize=(15, 5), sharey=True)  # Share y-axis for better comparison
+    # Scatter plot
+    plt.scatter(data["NOx"], data["O3"], label=f"_nolegend_", alpha=0.3, marker=".", s=5)
+    plt.xscale("log")  # Log scale for NOx
+    plt.xlim(1, 100)  # Set x-axis limits
+    plt.ylim(0, 200)
+    plt.xlabel("[NOx] (µg/m³)", fontsize=15)
+    plt.ylabel("[O3] (µg/m³)", fontsize=15)
+    #plt.title(f"{station} Station", fontsize=12, fontweight="bold")
+    plt.grid(True)
 
-# Loop through each station and assign each to a subplot
-for i, (station, data) in enumerate(station_data.items()):
-    axes[i].scatter(data["NOx"], data["O3"], label=station, alpha=0.3, marker=".", s=5)
-    axes[i].set_xscale("log")  # Log scale for NOx
-    axes[i].set_xlabel("[NOx] (µg/m³)")
-    axes[i].set_title(f"{station} Station", fontsize=12, fontweight="bold")
-    axes[i].grid(True)
+    plt.yticks([0, 50, 100, 150, 200])  # Adjust values as needed
+    plt.tick_params(axis='both', which='major', labelsize=12)
 
-# Set shared y-axis label
-axes[0].set_ylabel("[O3] (µg/m³)")
+    # **Fix: Remove problematic values before fitting trendline**
+    valid_indices = data["NOx"] > 0  # Remove zero or negative NOx values
+    x = np.log10(data["NOx"][valid_indices])  # Log-transform NOx safely
+    y = data["O3"][valid_indices]  # Keep corresponding O3 values
 
-# Adjust layout for better spacing
-plt.tight_layout()
+    # Remove NaN or Inf values
+    mask = np.isfinite(x) & np.isfinite(y)
+    x_clean = x[mask]
+    y_clean = y[mask]
 
-# Show the figure with three subplots
-plt.show()
+    legend_handles = []
+    # Fit and plot trendline only if enough data points exist
+    if len(x_clean) > 1:
+        # Calculate linear regression (slope, intercept, r-value)
+        slope, intercept, r_value, p_value, std_err = linregress(x_clean, y_clean)
+        
+        # Generate trendline points
+        x_trend = np.linspace(np.log10(1), np.log10(100), 100)
+        y_trend1 = slope * x_trend + intercept
+        trendline, = plt.plot(10**x_trend, y_trend1, linestyle="dashed", color="red", alpha=0.7, linewidth=2, label=f"Linear Fit (R={r_value:.2f})")
+
+        legend_handles.append(trendline)
+
+    from matplotlib.lines import Line2D
+    legend_marker = Line2D([0], [0], marker="o", color="w", markerfacecolor="blue", alpha=0.8, markersize=5, label=f"Measurements")
+    legend_handles.append(legend_marker)
+
+    plt.legend(handles=legend_handles, loc="upper right", fontsize=11)
+
+    # Save each figure separately
+    plt.savefig(f"{station}_scatter_plot.png", dpi=300, bbox_inches="tight")
+    plt.close()
