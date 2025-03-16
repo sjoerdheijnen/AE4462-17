@@ -82,16 +82,13 @@ for station in stations:
     data_NO = data[f"{station}_NO"]
     data_NO2 = data[f"{station}_NO2"]
     data_O3 = data[f"{station}_O3"]
-    
-    # Merge and alter data
+
     merged_data = data_NO.merge(data_NO2, on="time").merge(data_O3, on="time")
     merged_data.columns = ["datetime", "NO", "NO2", "O3"]
     merged_data["datetime"] = pd.to_datetime(merged_data["datetime"])
     
-    # Compute NOx concentration as sum of NO and NO2
     merged_data["NOx"] = merged_data["NO"] + merged_data["NO2"]
-    
-    # Store in dictionary
+
     station_data[station] = merged_data
 
 
@@ -137,40 +134,38 @@ plt.savefig("scatter_plot.png")
 # # Show the figure with three subplots
 # plt.show()
 
-# Loop through each station and create a separate figure
+#  create figure for each station
 for station, data in station_data.items():
-    plt.figure(figsize=(6, 4))  # Create a new figure for each station
+    plt.figure(figsize=(6, 4)) 
 
-    # Scatter plot
     plt.scatter(data["NOx"], data["O3"], label=f"_nolegend_", alpha=0.3, marker=".", s=5)
-    plt.xscale("log")  # Log scale for NOx
-    plt.xlim(1, 100)  # Set x-axis limits
+    plt.xscale("log")  
+    plt.xlim(1, 100) 
     plt.ylim(0, 200)
     plt.xlabel("[NOx] (µg/m³)", fontsize=15)
     plt.ylabel("[O3] (µg/m³)", fontsize=15)
     #plt.title(f"{station} Station", fontsize=12, fontweight="bold")
     plt.grid(True)
 
-    plt.yticks([0, 50, 100, 150, 200])  # Adjust values as needed
+    plt.yticks([0, 50, 100, 150, 200])  
     plt.tick_params(axis='both', which='major', labelsize=12)
 
-    # **Fix: Remove problematic values before fitting trendline**
-    valid_indices = data["NOx"] > 0  # Remove zero or negative NOx values
-    x = np.log10(data["NOx"][valid_indices])  # Log-transform NOx safely
-    y = data["O3"][valid_indices]  # Keep corresponding O3 values
+    valid_indices = data["NOx"] > 0  
+    x = np.log10(data["NOx"][valid_indices])  
+    y = data["O3"][valid_indices]  
 
-    # Remove NaN or Inf values
+    # Remove Infinite values
     mask = np.isfinite(x) & np.isfinite(y)
     x_clean = x[mask]
     y_clean = y[mask]
 
     legend_handles = []
-    # Fit and plot trendline only if enough data points exist
+    # Fit and plot trendline 
     if len(x_clean) > 1:
         # Calculate linear regression (slope, intercept, r-value)
         slope, intercept, r_value, p_value, std_err = linregress(x_clean, y_clean)
-        
-        # Generate trendline points
+
+        # Create trendline points
         x_trend = np.linspace(np.log10(1), np.log10(100), 100)
         y_trend1 = slope * x_trend + intercept
         trendline, = plt.plot(10**x_trend, y_trend1, linestyle="dashed", color="red", alpha=0.7, linewidth=2, label=f"Linear Fit (R={r_value:.2f})")
@@ -183,6 +178,6 @@ for station, data in station_data.items():
 
     plt.legend(handles=legend_handles, loc="upper right", fontsize=11)
 
-    # Save each figure separately
+    # Save figures
     plt.savefig(f"{station}_scatter_plot.png", dpi=300, bbox_inches="tight")
     plt.close()
